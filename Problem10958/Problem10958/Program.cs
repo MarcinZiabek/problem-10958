@@ -9,27 +9,36 @@ namespace Problem10958
     {
         static void Main(string[] args)
         {
+            var values = new HashSet<int>();
+            
             var avg = GenerateSequences()
                 .Select(x => x.Count-1)
                 .Select(x => Math.Pow(4, x) * x.Factorial())
                 .Sum();
             
-            var sum = 0;
             var sw = new Stopwatch();
             sw.Start();
-            
+
             foreach (var sequence in GenerateSequences())
             {
                 Console.WriteLine(sequence.ToText());
-                
-                var results = Results(sequence.ToArray(), 0, sequence.Count-1).Count();
-
-                Console.WriteLine($"Solutions: {results}");
-                sum += results;
+  
+                foreach (var result in Results(sequence.ToArray(), 0, sequence.Count-1))
+                {
+                    if (result.IsWholeNumber(out var number))
+                        values.Add(number);
+                }
             }
             
             sw.Stop();
-            Console.WriteLine($"Found: {sum} solutions during {sw.ElapsedMilliseconds} ms");
+            
+            Console.WriteLine($"Found {values.Count} during {sw.ElapsedMilliseconds} ms");
+
+            for (var i = -20_000; i < 20_000; i++)
+            {
+                if(!values.Contains(i))
+                    Console.WriteLine(i);
+            }
         }
 
         static IEnumerable<double> Results(int[] sequence, int start, int end)
@@ -43,17 +52,32 @@ namespace Problem10958
             for (var split = start; split < end; split++)
             {
                 var left = Results(sequence, start, split);
-                var right = Results(sequence, split+1, end).ToList();
+                var right = Results(sequence, split+1, end);
+
+                if (end - split < 7)
+                    right = right.ToList();
 
                 foreach (var leftValue in left)
                 {
                     foreach (var rightValue in right)
                     {
+                        yield return -leftValue + rightValue;
                         yield return leftValue + rightValue;
                         yield return leftValue - rightValue;
+                        yield return -leftValue - rightValue;
                         yield return leftValue * rightValue;
                         yield return leftValue / rightValue;
-                        yield return Math.Pow(leftValue, rightValue);
+                        
+                        yield return -leftValue * rightValue;
+                        yield return -leftValue / rightValue;
+                        
+                        var power = Math.Pow(leftValue, rightValue);
+
+                        if (power > -10e15 && power < 10e15)
+                        {
+                            yield return Math.Pow(leftValue, rightValue);
+                            yield return -Math.Pow(leftValue, rightValue);
+                        }
                     } 
                 }
             }
@@ -101,6 +125,12 @@ namespace Problem10958
         public static bool IsEqualTo(this double value, int target, double delta=10e-6)
         {
             return Math.Abs(value - target) < delta;
+        }
+        
+        public static bool IsWholeNumber(this double value, out int result, double delta=10e-12)
+        {
+            result = (int)Math.Round(value);
+            return Math.Abs(value - result) < delta;
         }
     }
 }

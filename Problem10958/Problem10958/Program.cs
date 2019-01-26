@@ -19,26 +19,26 @@ namespace Problem10958
             var sw = new Stopwatch();
             sw.Start();
 
-            foreach (var sequence in GenerateSequences())
+            foreach (var sequence in GenerateReversedSequences())
             {
                 Console.WriteLine(sequence.ToText());
   
-                foreach (var result in Results(sequence.ToArray(), 0, sequence.Count-1))
+                /*foreach (var result in Results(sequence.ToArray(), 0, sequence.Count-1))
                 {
                     if (result.IsWholeNumber(out var number))
                         values.Add(number);
-                }
+                }*/
             }
             
             sw.Stop();
             
             Console.WriteLine($"Found {values.Count} during {sw.ElapsedMilliseconds} ms");
 
-            for (var i = -20_000; i < 20_000; i++)
+            /*for (var i = -20_000; i < 20_000; i++)
             {
                 if(!values.Contains(i))
                     Console.WriteLine(i);
-            }
+            }*/
         }
 
         static IEnumerable<double> Results(int[] sequence, int start, int end)
@@ -93,6 +93,30 @@ namespace Problem10958
                 for (var j = 2; j <= 10; j++)
                 {
                     if (((1 << (j-2)) & i) != 0)
+                    {
+                        number = number * 10 + j;
+                    }
+                    else
+                    {
+                        result.Add(number);
+                        number = j;
+                    }
+                }
+
+                yield return result;
+            }
+        }
+        
+        static IEnumerable<List<int>> GenerateReversedSequences()
+        {
+            for (var i = 0; i <= 255; i++)
+            {
+                var result = new List<int>();
+                var number = 9;
+
+                for (var j = 8; j >= 0; j--)
+                {
+                    if (((1 << (j-1)) & i) != 0)
                     {
                         number = number * 10 + j;
                     }
